@@ -2,11 +2,6 @@ import socket
 import threading
 import sys
 
-# Uso:
-# Terminal 1: python simple_tcp_cluster.py server 5000
-# Terminal 2: python simple_tcp_cluster.py worker 127.0.0.1 5000
-# Envie múltiplos workers.
-# Depois digite mensagens no servidor para broadcast.
 
 clientes = []
 lock = threading.Lock()

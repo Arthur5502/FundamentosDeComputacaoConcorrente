@@ -3,15 +3,13 @@ import time
 
 contador = 0
 
-# Exemplo de condição de corrida
 
 def incrementar(n):
     global contador
     for _ in range(n):
-        valor = contador  # lê
-        # Simula processamento
+        valor = contador 
         time.sleep(0.0001)
-        contador = valor + 1  # escreve
+        contador = valor + 1 
 
 
 def sem_sincronizacao():
@@ -23,7 +21,6 @@ def sem_sincronizacao():
     t1.join(); t2.join()
     print(f"Sem sincronização contador = {contador} (esperado 200)")
 
-# Corrigindo com Lock
 lock = threading.Lock()
 
 def incrementar_com_lock(n):
