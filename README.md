@@ -1,95 +1,162 @@
-# Fundamentos de Computação Concorrente, Paralela e Distribuída
+# Sistema de Restaurante Distribuído
 
-Coleção de exemplos simples em Python para ilustrar conceitos fundamentais:
+Este projeto demonstra uma arquitetura cliente-servidor para um sistema de restaurante com processamento concorrente de pedidos.
 
-1. Condição de Corrida e Exclusão Mútua (threads + Lock)
-2. Produtor / Consumidor com fila segura (`queue.Queue`)
-3. Paralelismo CPU-Bound com `multiprocessing`
-4. Concorrência IO-Bound com `asyncio`
-5. Comunicação em Cluster simples via sockets (modelo distribuído)
+## Arquitetura
 
-## Estrutura
+### 🔧 **Servidor (`servidor.py`)**
+- Gerencia o estado do restaurante (pedidos, cardápio, chefs)
+- Processa pedidos de forma concorrente usando ThreadPoolExecutor
+- Aceita múltiplas conexões simultâneas de clientes
+- API baseada em JSON para comunicação
 
-```
-concurrency/
-	threads_race_condition.py
-	producer_consumer_queue.py
-parallelism/
-	cpu_bound_multiprocessing.py
-	async_io_example.py
-distributed/
-	simple_tcp_cluster.py
-```
+**Principais características:**
+- ✅ Processamento assíncrono de pedidos
+- ✅ Thread pool para simular múltiplos chefs
+- ✅ Gerenciamento de estado thread-safe
+- ✅ Suporte a múltiplos clientes simultâneos
 
-## 1. Condição de corrida vs Lock
+### 📱 **Cliente (`cliente.py`)**
+- Interface de linha de comando para interação com usuário
+- Comunica com servidor via sockets TCP
+- Envia comandos em formato JSON
 
-Mostra resultado incorreto sem sincronização e correto com `Lock`.
+**Funcionalidades:**
+- ✅ Fazer pedidos
+- ✅ Verificar status de pedidos
+- ✅ Listar pedidos pendentes
+- ✅ Aguardar finalização de todos os pedidos
 
-Executar:
-```bash
-python concurrency/threads_race_condition.py
-```
+## Como Usar
 
-Observe que sem lock geralmente o contador < 200.
+### Método 1: Manual
 
-## 2. Produtor / Consumidor
+1. **Iniciar o servidor:**
+   ```bash
+   python3 servidor.py
+   ```
 
-Usa `queue.Queue` para coordenação segura entre threads.
+2. **Iniciar cliente(s) em terminal(s) separado(s):**
+   ```bash
+   python3 cliente.py
+   ```
 
-```bash
-python concurrency/producer_consumer_queue.py
-```
-
-## 3. Paralelismo CPU-Bound
-
-Conta números primos em blocos usando vários processos (aproveita múltiplos núcleos).
-
-```bash
-python parallelism/cpu_bound_multiprocessing.py
-```
-
-Adapte `N` e blocos para experimentar impacto de granularidade.
-
-## 4. IO Concorrente com asyncio
-
-Simula operações de IO concorrentes sem múltiplas threads pesadas.
+### Método 2: Script Automatizado
 
 ```bash
-python parallelism/async_io_example.py
+python3 teste_sistema.py
 ```
 
-## 5. Exemplo Distribuído (Broadcast simples)
+## Comandos do Cliente
 
-Servidor aceita múltiplos workers e retransmite mensagens digitadas.
+Uma vez conectado, você pode usar os seguintes comandos:
 
-Terminal 1 (servidor):
-```bash
-python distributed/simple_tcp_cluster.py server 5000
+- `pedido <prato> [quantidade]` - Fazer um pedido
+  - Exemplo: `pedido pizza 2`
+  
+- `status <id>` - Verificar status do pedido
+  - Exemplo: `status P001`
+  
+- `pendentes` - Listar pedidos em andamento
+
+- `aguardar` - Aguardar todos os pedidos serem finalizados
+
+- `menu` - Mostrar menu de comandos
+
+- `sair` - Encerrar cliente
+
+## Cardápio Disponível
+
+- 🍕 Pizza (2.0s base)
+- 🍔 Hambúrguer (1.5s base)
+- 🥗 Salada (0.8s base)
+- 🍲 Sopa (1.2s base)
+- 🍝 Lasanha (3.0s base)
+- 🥪 Sanduíche (1.0s base)
+
+*Tempos são simulados e podem variar com quantidade e aleatoriedade*
+
+## Protocolo de Comunicação
+
+### Formato das Mensagens
+
+**Cliente → Servidor:**
+```json
+{
+    "acao": "fazer_pedido",
+    "prato": "pizza",
+    "quantidade": 2
+}
 ```
 
-Terminal 2..N (workers):
-```bash
-python distributed/simple_tcp_cluster.py worker 127.0.0.1 5000
+**Servidor → Cliente:**
+```json
+{
+    "sucesso": true,
+    "pedido_id": "P001",
+    "mensagem": "Pedido P001 adicionado à fila"
+}
 ```
 
-Digite mensagens no servidor para broadcast. Digite `sair` para encerrar.
+### Ações Suportadas
 
-## Conceitos Relacionados
+- `fazer_pedido` - Criar novo pedido
+- `verificar_pedido` - Consultar status
+- `listar_pendentes` - Listar pedidos em andamento
+- `obter_cardapio` - Obter cardápio disponível
+- `aguardar_todos` - Aguardar conclusão de todos os pedidos
 
-- Condição de corrida: acesso concorrente não controlado levando a estado inconsistente.
-- Exclusão mútua: uso de locks / monitores para proteger região crítica.
-- Espera bloqueante vs não bloqueante.
-- Paralelismo x Concorrência: paralelismo = execução simultânea física; concorrência = progressão intercalada ou simultânea.
-- CPU-bound x IO-bound.
-- Overhead de criação de threads vs reutilização (asyncio/event loop).
-- Comunicação entre processos vs threads (memória compartilhada vs mensagem).
+## Benefícios da Arquitetura Cliente-Servidor
 
-## Próximos Passos (Sugestões)
+### ✅ **Separação de Responsabilidades**
+- **Servidor**: Lógica de negócio, processamento, estado
+- **Cliente**: Interface do usuário, entrada/saída
 
-- Adicionar exemplo de deadlock e prevenção.
-- Implementar pool de threads manual.
-- Exemplo com `asyncio.Queue` e produtor/consumidor assíncrono.
-- Exemplo distribuído com troca estruturada (JSON) e heartbeats.
+### ✅ **Escalabilidade**
+- Múltiplos clientes simultâneos
+- Processamento paralelo no servidor
+- Fácil adição de novos recursos
 
----
-Sinta-se livre para expandir os exemplos e adicionar medições de tempo para análise de desempenho.
+### ✅ **Manutenibilidade**
+- Código modularizado
+- Fácil modificação de interface ou lógica
+- Testes independentes de componentes
+
+### ✅ **Distribuição**
+- Clientes podem estar em máquinas diferentes
+- Servidor centralizado para consistência
+- Comunicação via rede
+
+## Configuração de Rede
+
+**Padrão:**
+- Host: `localhost`
+- Porta: `8888`
+
+Para alterar, modifique os parâmetros nos arquivos:
+```python
+# servidor.py
+servidor = RestauranteServidor(host='0.0.0.0', port=9999)
+
+# cliente.py  
+cliente = RestauranteCliente(host='192.168.1.100', port=9999)
+```
+
+## Comparação com Versão Original
+
+| Aspecto | Original (Monolítico) | Nova (Cliente-Servidor) |
+|---------|----------------------|-------------------------|
+| **Arquitetura** | Tudo em um processo | Separado em 2 componentes |
+| **Usuários** | 1 usuário por vez | Múltiplos usuários simultâneos |
+| **Distribuição** | Local apenas | Pode ser distribuído em rede |
+| **Escalabilidade** | Limitada | Alta (múltiplos clientes) |
+| **Manutenção** | Acoplada | Desacoplada |
+
+## Possíveis Extensões
+
+- 🔒 Autenticação de usuários
+- 💾 Persistência de dados (banco de dados)
+- 🌐 Interface web (HTTP/REST)
+- 📊 Métricas e monitoramento
+- 🔄 Balanceamento de carga
+- 📱 Cliente mobile
